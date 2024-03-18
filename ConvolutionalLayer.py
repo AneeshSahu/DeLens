@@ -3,17 +3,16 @@ import numpy as np
 import math
 
 class ConvolutionalLayer(Layer):
-    def __init__(self,kwidth,kheight,Xavier= False,Adam = False):
+    def __init__(self,kwidth,Xavier= False,Adam = False):
         super().__init__()
         self.kwidth = kwidth
-        self.kheight = kheight
         if Xavier:
             self.kernel = np.random.uniform(
-                -math.sqrt(6 / (kwidth + kheight)),
-                math.sqrt(6 / (kwidth + kheight)), (kwidth, kheight))
+                -math.sqrt(6 / (2*kwidth)),
+                math.sqrt(6 / (2*kwidth)), (2*kwidth))
         else:
-            self.kernel = (np.random.rand(kwidth, kheight) - 0.5) / 5000
-        self.kernel.reshape(kheight, kwidth)
+            self.kernel = (np.random.rand(kwidth, kwidth) - 0.5) / 5000
+        self.kernel.reshape(kwidth, kwidth)
 
         if Adam:
             self.r=0
@@ -21,18 +20,15 @@ class ConvolutionalLayer(Layer):
 
     @staticmethod
     def crossCorrelate2D(dataIn, kernel):
-        height = dataIn.shape[0]
         width = dataIn.shape[1]
-        kheight = kernel.shape[0]
         kwidth = kernel.shape[1]
-        dataOut=np.zeros((height-kheight+1, width-kwidth+1))
+        dataOut=np.zeros((width-kwidth+1, width-kwidth+1))
         currentPos = [0,0]
-        for j in range(math.ceil(kheight / 2) - 1, height - math.floor(kheight / 2)):
+        for j in range(math.ceil(kwidth / 2) - 1, width - math.floor(kwidth / 2)):
             for i in range(math.ceil(kwidth/2)-1,width - math.floor(kwidth/2)):
                 dataOut[currentPos[1]][currentPos[0]] = np.sum(kernel * dataIn[
-                      j - math.ceil(kheight / 2) + 1:j + math.floor(kheight / 2) + 1,
+                      j - math.ceil(kwidth / 2) + 1:j + math.floor(kwidth / 2) + 1,
                       i - math.ceil(kwidth / 2) + 1:i + math.floor(kwidth / 2) + 1])
-
                 currentPos[0]+=1
             currentPos[0] = 0
             currentPos[1] +=1
@@ -50,8 +46,16 @@ class ConvolutionalLayer(Layer):
     def gradient(self):
         pass
 
-    def backward(self,gradIn):
-        pass
+    def backward(self,gradIn : np.ndarray):
+        out = []
+        for i in range(len(gradIn)):
+            out.append(ConvolutionalLayer.crossCorrelate2D(
+                np.pad(gradIn[i],[(self.kwidth+1,self.kwidth+1),(self.kwidth+1,self.kwidth+1)]),
+                self.kernel
+            ))
+        out = np.asarray(out)
+        return out
+
 
     def updateWeights(self, gradIn, eta, Adam = False, epoch = 0):
         X = self.getPrevIn()
@@ -78,28 +82,3 @@ class ConvolutionalLayer(Layer):
 
         else:
             self.kernel -= eta * dJdK
-
-if __name__ == '__main__':
-    I = np.random.randn(8, 8)
-    L = ConvolutionalLayer(3,3)
-    #res = L.crossCorrelate2D(I, 8 ,8)
-
-    I = np.random.randn(7, 7)
-    L = ConvolutionalLayer(3, 2)
-    #res = L.crossCorrelate2D(I, 7, 7)
-
-    X = np.asarray([[1,2,3,4],[2,2,3,2],[1,3,3,3],[4,4,4,4]])
-    k = np.asarray([[1,2,3],[2,2,3],[1,3,3]])
-    L = ConvolutionalLayer(3,3)
-    L.kernel = k
-    res = L.forward(X)
-    print(res)
-
-    X = np.asarray([[1,1,0,1,0,0,1,1],[1,1,1,1,0,0,1,0],[0,0,1,1,0,1,0,1],[1,1,1,0,1,1,1,0],[1,1,1,1,1,0,1,1],[0,0,0,0,0,0,0,0],[0,1,1,1,1,0,0,1],[1,0,1,0,0,1,0,1]])
-    k = np.asarray([[2,-1,2],[2,-1,0],[1,0,2]])
-    L = ConvolutionalLayer(3, 3)
-    L.kernel = k
-    print(X)
-    print(k)
-    res = L.forward(X)
-    print(res)
