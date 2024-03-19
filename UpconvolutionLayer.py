@@ -42,7 +42,10 @@ class UpconvolutionalLayer(Layer):
         for i in range(len(dataIn)):
         # loop over all kernels
             for k in range(len(self.kernel)):
-                out.append(UpconvolutionalLayer.crossCorrelate2D(dataIn[i],self.kernel[k]))
+                print(f"zpadded shape: ")
+                out.append(UpconvolutionalLayer.crossCorrelate2D(np.pad(
+                            dataIn[i],
+                            [(dataIn.shape[1] % self.kwidth,dataIn.shape[1] % self.kwidth),(dataIn.shape[1] % self.kwidth,dataIn.shape[1] % self.kwidth)]),self.kernel[k].T))
         out = np.asarray(out)
         self.setPrevOut(out)
         return out
@@ -60,10 +63,9 @@ class UpconvolutionalLayer(Layer):
                 # for each layer of gradIn
                 for j in range(len(gradIn)):
                     out[i] += UpconvolutionalLayer.crossCorrelate2D(
-                        np.pad(
-                            gradIn[j],
-                            [(self.kwidth-1,self.kwidth-1),(self.kwidth-1,self.kwidth-1)]),
+                        np.pad(gradIn[j], [(self.getPrevIn().shape[1] % self.kwidth,self.getPrevIn().shape[1] % self.kwidth),(self.getPrevIn().shape[1] % self.kwidth,self.getPrevIn().shape[1] % self.kwidth)]),
                         self.kernel[k].T)
+
         return out
 
 
@@ -98,18 +100,18 @@ class UpconvolutionalLayer(Layer):
 
 if __name__ == "__main__" :
     inp = np.random.rand(1,10,10)
-    print(f"Input is {inp}\n shape is {inp.shape}")
+    print(f"Input is shape is {inp.shape}")
     c1 = UpconvolutionalLayer(3,2)
     c2 = UpconvolutionalLayer(3,2)
 
     print("Forwards")
     h = c1.forward(inp)
-    print(f"Output of c1 is {h}\n shape is {h.shape}")
+    print(f"Output of c1 is shape is {h.shape}")
     h = c2.forward(h)
-    print(f"Output of c2 is {h}\n shape is {h.shape}")
+    print(f"Output of c2 is  shape is {h.shape}")
 
-    grad = np.random.rand(4,6,6)
-    print(f"grad is {grad}\n shape is {grad.shape}")
+    grad = np.random.rand(4,10,10)
+    print(f"grad is  shape is {grad.shape}")
 
     print("Backwards")
     h = c2.backward(grad)
