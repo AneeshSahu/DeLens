@@ -39,14 +39,33 @@ def kernel3matrix(K,Xlen):
             W[(Xlen-2)*i+j][(Xlen)*i+j:(Xlen)*i+j+len(k)] = k
     return W
 
-X = np.asarray([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+def kernelNmatrix(K,Xlen):
+    Kwidth = K.shape[1]
+    OstoPad = (Xlen - Kwidth)
+    k = np.zeros(Kwidth**2 + (Kwidth-1)*OstoPad)
+    for i in range(Kwidth):
+        k[i*(Kwidth+OstoPad):(i+1)*Kwidth + i*OstoPad] = K[i,:]
+    W = np.zeros(((Xlen-Kwidth+1)**2,Xlen**2))
+
+    for i in range(Xlen-Kwidth+1):
+        for j in range(Xlen-Kwidth+1):
+            W[(Xlen-Kwidth+1)*i+j][(Xlen)*i+j:(Xlen)*i+j+len(k)] = k
+    return W
+
+#X = np.asarray([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
 K = np.asarray([[1,2],[3,4]])
-W = kernel2matrix(K,4)
+W = kernelNmatrix(K,4)
 print(W)
 
 #X = np.asarray([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
-#k = np.asarray([[1,2,3],[4,5,6],[7,8,9]])
+K = np.asarray([[1,2,3],[4,5,6],[7,8,9]])
 
-#W = kernel3matrix(k,4)
+W = kernelNmatrix(K,6)
 
-print(f"Conv: {np.matmul(W,X.flatten()).reshape(3,3)}")
+K = np.asarray([[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]])
+
+W = kernelNmatrix(K,8)
+print(W)
+
+
+#print(f"Conv: {np.matmul(W,X.flatten()).reshape(3,3)}")
