@@ -10,11 +10,9 @@ class halfLayers(Layer):
         self.setPrevIn(dataIn)
         out = []
         for i in range(len(dataIn)//2):
-            print(i*2)
-            print(i * 2 + 1)
+            # print(i*2)
+            # print(i * 2 + 1)
             out.append((dataIn[i*2] + dataIn[i * 2 + 1])/2)
-        if i != math.ceil(len(dataIn)/2):
-            out.append(dataIn[-1])
         self.setPrevOut(np.asarray(out))
         return np.asarray(out)
     def backward(self,gradIn):
@@ -23,8 +21,6 @@ class halfLayers(Layer):
         for i in range(layers//2):
             out.append(gradIn[i])
             out.append(gradIn[i])
-        if i != math.ceil(layers/2):
-            out.append(gradIn[-1])
         return np.asarray(out)
     def gradient(self):
         pass

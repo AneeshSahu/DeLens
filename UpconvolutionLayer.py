@@ -85,6 +85,8 @@ class UpconvolutionalLayer(Layer):
 
 
     def updateWeights(self, gradIn, eta, Adam = False, epoch = 0):
+        if self.residual is not None:
+            gradIn += self.residual
         X = self.getPrevIn()
         n = X.shape[0]
         #print(f"{n} is n")
