@@ -74,7 +74,7 @@ class ConvolutionalLayer(Layer):
         # for each layer of input
         for i in range(len(out)):
             # for each kernel
-            for k in range(len(out)):
+            for k in range(len(self.kernel)):
                 # for each layer of gradIn
                 for j in range(len(gradIn)):
                     out[i] += ConvolutionalLayer.crossCorrelate2D(
@@ -119,7 +119,7 @@ class ConvolutionalLayer(Layer):
 
 
 if __name__ == "__main__" :
-    inp = np.random.rand(1,10,10)
+    inp = np.random.rand(16,6,6)
     print(f"Input is {inp}\n shape is {inp.shape}")
     c1 = ConvolutionalLayer(2,2)
     c2 = ConvolutionalLayer(2,2)
@@ -130,7 +130,7 @@ if __name__ == "__main__" :
     h = c2.forward(h)
     print(f"Output of c2 is {h}\n shape is {h.shape}")
 
-    grad = np.random.rand(4,8,8)
+    grad = np.random.rand(64,4,4)
     print(f"grad is {grad}\n shape is {grad.shape}")
 
     print("Backwards")
