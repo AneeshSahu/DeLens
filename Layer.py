@@ -9,6 +9,7 @@ class Layer(ABC):
     def __init__(self):
         self.__prevIn = []
         self.__prevOut = []
+        self.residual = None
 
     def setPrevIn(self,dataIn):
         self.__prevIn = dataIn
@@ -21,6 +22,10 @@ class Layer(ABC):
 
     def getPrevOut(self):
         return self.__prevOut
+    def setResidual(self, residual):
+        self.residual = residual
+    def getResidual(self):
+        return self.residual
 
     @staticmethod
     def applyOver(data: np.asarray, f):
