@@ -37,18 +37,25 @@ class UpconvolutionalLayer(Layer):
     # input is only one image
     def forward(self,dataIn):
         self.setPrevIn(dataIn)
-        out = []
-        # loop over all layers of input
-        for i in range(len(dataIn)):
-        # loop over all kernels
-            for k in range(len(self.kernel)):
-                print(f"zpadded shape: ")
-                out.append(UpconvolutionalLayer.crossCorrelate2D(np.pad(
-                            dataIn[i],
-                            [(dataIn.shape[1] % self.kwidth,dataIn.shape[1] % self.kwidth),(dataIn.shape[1] % self.kwidth,dataIn.shape[1] % self.kwidth)]),self.kernel[k].T))
-        out = np.asarray(out)
-        self.setPrevOut(out)
-        return out
+        Y = np.zeros((dataIn.shape[0], dataIn.shape[1] + self.kwidth - 1, self.kwidth + dataIn.shape[1] - 1))
+        for layer in range(dataIn.shape[0]):
+            for i in range(dataIn.shape[1]):
+                for j in range(dataIn.shape[2]):
+                    Y[layer][i:i+self.kwidth, j:j+self.kwidth] += (dataIn[layer, i, j]* self.kernel)[0]
+        return Y
+        # self.setPrevIn(dataIn)
+        # out = []
+        # # loop over all layers of input
+        # for i in range(len(dataIn)):
+        # # loop over all kernels
+        #     for k in range(len(self.kernel)):
+        #         print(f"zpadded shape: ")
+        #         out.append(UpconvolutionalLayer.crossCorrelate2D(np.pad(
+        #                     dataIn[i],
+        #                     [(dataIn.shape[1] % self.kwidth,dataIn.shape[1] % self.kwidth),(dataIn.shape[1] % self.kwidth,dataIn.shape[1] % self.kwidth)]),self.kernel[k].T))
+        # out = np.asarray(out)
+        # self.setPrevOut(out)
+        # return out
 
     def gradient(self):
         pass
@@ -101,8 +108,8 @@ class UpconvolutionalLayer(Layer):
 if __name__ == "__main__" :
     inp = np.random.rand(1,10,10)
     print(f"Input is shape is {inp.shape}")
-    c1 = UpconvolutionalLayer(3,2)
-    c2 = UpconvolutionalLayer(3,2)
+    c1 = UpconvolutionalLayer(3,1)
+    c2 = UpconvolutionalLayer(3,1)
 
     print("Forwards")
     h = c1.forward(inp)
